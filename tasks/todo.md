@@ -4,7 +4,7 @@ Mirrors `plan.md`. `[ask-first]` = confirm with developer before executing, even
 
 ## Session 1 — Foundations
 - [x] S1-T1 Bootstrap task-service against Dockerized Postgres
-- [ ] S1-T2 Bootstrap notification-service skeleton
+- [x] S1-T2 Bootstrap notification-service skeleton
 - [ ] S1-T3 Flyway baseline migration V1__init.sql (incl. users.role)
 - [ ] S1-T4 JPA entities + persistence slice test
 
