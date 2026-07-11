@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: task-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:taskhub}
+    username: ${DB_USER:taskhub}
+    password: ${DB_PASSWORD:taskhub}
+  flyway:
+    locations: classpath:db/migration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
