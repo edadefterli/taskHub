@@ -9,7 +9,7 @@ Mirrors `plan.md`. `[ask-first]` = confirm with developer before executing, even
 - [x] S1-T4 JPA entities + persistence slice test
 
 ## Session 2 — Task & Project CRUD REST API
-- [ ] S2-T1 Project CRUD vertical slice
+- [x] S2-T1 Project CRUD vertical slice
 - [ ] S2-T2 Task CRUD nested under project (with tag association)
 - [ ] S2-T3 Tag read endpoints
 - [ ] S2-T4 Swagger UI + global RFC 7807 error handling
