@@ -10,7 +10,7 @@ Mirrors `plan.md`. `[ask-first]` = confirm with developer before executing, even
 
 ## Session 2 — Task & Project CRUD REST API
 - [x] S2-T1 Project CRUD vertical slice
-- [ ] S2-T2 Task CRUD nested under project (with tag association)
+- [x] S2-T2 Task CRUD nested under project (with tag association)
 - [ ] S2-T3 Tag read endpoints
 - [ ] S2-T4 Swagger UI + global RFC 7807 error handling
 
