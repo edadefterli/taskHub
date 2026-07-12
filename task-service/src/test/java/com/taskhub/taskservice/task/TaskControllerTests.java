@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.task;
 
+import com.taskhub.taskservice.auth.JwtConfig;
 import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.common.SecurityConfig;
 import com.taskhub.taskservice.task.dto.TaskResponse;
@@ -22,13 +23,14 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TaskController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JwtConfig.class})
 class TaskControllerTests {
 
     @Autowired
@@ -36,6 +38,12 @@ class TaskControllerTests {
 
     @MockitoBean
     private TaskService taskService;
+
+    @Test
+    void should_returnUnauthorized_when_noTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
     void should_returnCreated_when_creatingTaskWithTags() throws Exception {
@@ -47,6 +55,7 @@ class TaskControllerTests {
         when(taskService.create(eq(projectId), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/projects/{projectId}/tasks", projectId)
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"title":"Ship it","status":"TODO","tagNames":["urgent"]}
@@ -63,7 +72,7 @@ class TaskControllerTests {
         when(taskService.list(eq(projectId), any(Pageable.class)))
                 .thenThrow(new ResourceNotFoundException("Project not found: " + projectId));
 
-        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", projectId))
+        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", projectId).with(jwt()))
                 .andExpect(status().isNotFound());
     }
 
@@ -77,7 +86,7 @@ class TaskControllerTests {
 
         when(taskService.list(eq(projectId), any(Pageable.class))).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", projectId))
+        mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", projectId).with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title").value("Ship it"));
     }

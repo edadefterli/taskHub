@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.project;
 
+import com.taskhub.taskservice.auth.JwtConfig;
 import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.common.SecurityConfig;
 import com.taskhub.taskservice.project.dto.ProjectRequest;
@@ -22,13 +23,14 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProjectController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JwtConfig.class})
 class ProjectControllerTests {
 
     @Autowired
@@ -36,6 +38,12 @@ class ProjectControllerTests {
 
     @MockitoBean
     private ProjectService projectService;
+
+    @Test
+    void should_returnUnauthorized_when_noTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/projects"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
     void should_returnCreated_when_creatingValidProject() throws Exception {
@@ -47,10 +55,11 @@ class ProjectControllerTests {
         when(projectService.create(any(ProjectRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/projects")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"Launch","description":"Launch project","ownerId":"%s"}
-                                """.formatted(ownerId)))
+                                {"name":"Launch","description":"Launch project"}
+                                """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Launch"));
     }
@@ -58,10 +67,11 @@ class ProjectControllerTests {
     @Test
     void should_returnBadRequest_when_creatingProjectWithBlankName() throws Exception {
         mockMvc.perform(post("/api/v1/projects")
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"","description":null,"ownerId":"%s"}
-                                """.formatted(UUID.randomUUID())))
+                                {"name":"","description":null}
+                                """))
                 .andExpect(status().isBadRequest());
     }
 
@@ -71,7 +81,7 @@ class ProjectControllerTests {
 
         when(projectService.get(eq(id))).thenThrow(new ResourceNotFoundException("Project not found: " + id));
 
-        mockMvc.perform(get("/api/v1/projects/{id}", id))
+        mockMvc.perform(get("/api/v1/projects/{id}", id).with(jwt()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -85,7 +95,7 @@ class ProjectControllerTests {
 
         when(projectService.list(any(Pageable.class))).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/projects"))
+        mockMvc.perform(get("/api/v1/projects").with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].name").value("Launch"));
     }

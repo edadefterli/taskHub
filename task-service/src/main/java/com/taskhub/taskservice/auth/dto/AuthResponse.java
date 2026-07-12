@@ -1,0 +1,7 @@
+package com.taskhub.taskservice.auth.dto;
+
+public record AuthResponse(
+        String accessToken,
+        String tokenType,
+        long expiresInSeconds) {
+}

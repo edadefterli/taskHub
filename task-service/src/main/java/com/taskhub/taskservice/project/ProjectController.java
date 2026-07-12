@@ -49,17 +49,18 @@ class ProjectController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a project")
+    @Operation(summary = "Create a project", description = "Owner is derived from the authenticated principal.")
     @ApiResponse(responseCode = "201", description = "Project created")
-    @ApiResponse(responseCode = "400", description = "Invalid payload or unknown owner")
+    @ApiResponse(responseCode = "400", description = "Invalid payload")
     ProjectResponse create(@Valid @RequestBody ProjectRequest request) {
         return projectService.create(request);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update a project")
+    @Operation(summary = "Update a project", description = "Only the owner or an ADMIN may update.")
     @ApiResponse(responseCode = "200", description = "Project updated")
-    @ApiResponse(responseCode = "400", description = "Invalid payload or unknown owner")
+    @ApiResponse(responseCode = "400", description = "Invalid payload")
+    @ApiResponse(responseCode = "403", description = "Not the owner and not an ADMIN")
     @ApiResponse(responseCode = "404", description = "Project not found")
     ProjectResponse update(@PathVariable UUID id, @Valid @RequestBody ProjectRequest request) {
         return projectService.update(id, request);
@@ -67,8 +68,9 @@ class ProjectController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Delete a project")
+    @Operation(summary = "Delete a project", description = "Only the owner or an ADMIN may delete.")
     @ApiResponse(responseCode = "204", description = "Project deleted")
+    @ApiResponse(responseCode = "403", description = "Not the owner and not an ADMIN")
     @ApiResponse(responseCode = "404", description = "Project not found")
     void delete(@PathVariable UUID id) {
         projectService.delete(id);

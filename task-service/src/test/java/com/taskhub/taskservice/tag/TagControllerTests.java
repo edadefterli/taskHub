@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.tag;
 
+import com.taskhub.taskservice.auth.JwtConfig;
 import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.common.SecurityConfig;
 import com.taskhub.taskservice.tag.dto.TagResponse;
@@ -20,12 +21,13 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TagController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JwtConfig.class})
 class TagControllerTests {
 
     @Autowired
@@ -35,13 +37,19 @@ class TagControllerTests {
     private TagService tagService;
 
     @Test
+    void should_returnUnauthorized_when_noTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/tags"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void should_returnPagedTags_when_listing() throws Exception {
         TagResponse response = new TagResponse(UUID.randomUUID(), "urgent", OffsetDateTime.now());
         Page<TagResponse> page = new PageImpl<>(List.of(response));
 
         when(tagService.list(any(Pageable.class))).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/tags"))
+        mockMvc.perform(get("/api/v1/tags").with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].name").value("urgent"));
     }
@@ -53,7 +61,7 @@ class TagControllerTests {
 
         when(tagService.get(eq(id))).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/tags/{id}", id))
+        mockMvc.perform(get("/api/v1/tags/{id}", id).with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("urgent"));
     }
@@ -64,7 +72,7 @@ class TagControllerTests {
 
         when(tagService.get(eq(id))).thenThrow(new ResourceNotFoundException("Tag not found: " + id));
 
-        mockMvc.perform(get("/api/v1/tags/{id}", id))
+        mockMvc.perform(get("/api/v1/tags/{id}", id).with(jwt()))
                 .andExpect(status().isNotFound());
     }
 }

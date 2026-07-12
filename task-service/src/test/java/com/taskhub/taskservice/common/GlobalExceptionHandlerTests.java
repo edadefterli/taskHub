@@ -3,6 +3,8 @@ package com.taskhub.taskservice.common;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,11 +24,25 @@ class GlobalExceptionHandlerTests {
     }
 
     @Test
-    void should_return400ProblemDetail_when_invalidReference() {
-        ProblemDetail problem = handler.handleInvalidReference(new InvalidReferenceException("Owner not found: x"));
+    void should_return409ProblemDetail_when_conflict() {
+        ProblemDetail problem = handler.handleConflict(new ConflictException("Email already registered: x"));
 
-        assertThat(problem.getStatus()).isEqualTo(400);
-        assertThat(problem.getDetail()).isEqualTo("Owner not found: x");
+        assertThat(problem.getStatus()).isEqualTo(409);
+        assertThat(problem.getDetail()).isEqualTo("Email already registered: x");
+    }
+
+    @Test
+    void should_return401ProblemDetail_when_authenticationFails() {
+        ProblemDetail problem = handler.handleAuthentication(new BadCredentialsException("wrong password"));
+
+        assertThat(problem.getStatus()).isEqualTo(401);
+    }
+
+    @Test
+    void should_return403ProblemDetail_when_accessDenied() {
+        ProblemDetail problem = handler.handleAccessDenied(new AccessDeniedException("not allowed"));
+
+        assertThat(problem.getStatus()).isEqualTo(403);
     }
 
     @Test

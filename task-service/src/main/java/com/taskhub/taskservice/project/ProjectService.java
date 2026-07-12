@@ -1,13 +1,14 @@
 package com.taskhub.taskservice.project;
 
-import com.taskhub.taskservice.common.InvalidReferenceException;
 import com.taskhub.taskservice.common.ResourceNotFoundException;
+import com.taskhub.taskservice.common.SecurityUtils;
 import com.taskhub.taskservice.project.dto.ProjectRequest;
 import com.taskhub.taskservice.project.dto.ProjectResponse;
 import com.taskhub.taskservice.user.User;
 import com.taskhub.taskservice.user.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +37,7 @@ class ProjectService {
 
     @Transactional
     ProjectResponse create(ProjectRequest request) {
-        User owner = findOwnerOrThrow(request.ownerId());
+        User owner = currentUser();
 
         Project project = Project.builder()
                 .name(request.name())
@@ -53,21 +54,18 @@ class ProjectService {
     @Transactional
     ProjectResponse update(UUID id, ProjectRequest request) {
         Project project = findProjectOrThrow(id);
-        User owner = findOwnerOrThrow(request.ownerId());
+        requireOwnerOrAdmin(project);
 
         project.setName(request.name());
         project.setDescription(request.description());
-        project.setOwner(owner);
 
-        // saveAndFlush (not save): forces the insert/update now so Hibernate's
-        // @CreationTimestamp/@UpdateTimestamp are populated before the response
-        // is built, instead of returning null timestamps until the next read.
         return ProjectMapper.toResponse(projectRepository.saveAndFlush(project));
     }
 
     @Transactional
     void delete(UUID id) {
         Project project = findProjectOrThrow(id);
+        requireOwnerOrAdmin(project);
         projectRepository.delete(project);
     }
 
@@ -76,8 +74,14 @@ class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
     }
 
-    private User findOwnerOrThrow(UUID ownerId) {
-        return userRepository.findById(ownerId)
-                .orElseThrow(() -> new InvalidReferenceException("Owner not found: " + ownerId));
+    private User currentUser() {
+        return userRepository.findById(SecurityUtils.currentUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
+    }
+
+    private void requireOwnerOrAdmin(Project project) {
+        if (!SecurityUtils.isAdmin() && !project.getOwner().getId().equals(SecurityUtils.currentUserId())) {
+            throw new AccessDeniedException("Not allowed to modify this project");
+        }
     }
 }

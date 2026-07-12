@@ -1,6 +1,7 @@
 package com.taskhub.taskservice.task;
 
 import com.taskhub.taskservice.common.ResourceNotFoundException;
+import com.taskhub.taskservice.common.SecurityUtils;
 import com.taskhub.taskservice.project.Project;
 import com.taskhub.taskservice.project.ProjectRepository;
 import com.taskhub.taskservice.tag.Tag;
@@ -9,6 +10,7 @@ import com.taskhub.taskservice.task.dto.TaskRequest;
 import com.taskhub.taskservice.task.dto.TaskResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,7 @@ class TaskService {
     @Transactional
     TaskResponse create(UUID projectId, TaskRequest request) {
         Project project = requireProject(projectId);
+        requireOwnerOrAdmin(project);
 
         Task task = Task.builder()
                 .project(project)
@@ -59,6 +62,7 @@ class TaskService {
     @Transactional
     TaskResponse update(UUID projectId, UUID taskId, TaskRequest request) {
         Task task = findTaskInProjectOrThrow(projectId, taskId);
+        requireOwnerOrAdmin(task.getProject());
 
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -72,12 +76,19 @@ class TaskService {
     @Transactional
     void delete(UUID projectId, UUID taskId) {
         Task task = findTaskInProjectOrThrow(projectId, taskId);
+        requireOwnerOrAdmin(task.getProject());
         taskRepository.delete(task);
     }
 
     private Project requireProject(UUID projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+    }
+
+    private void requireOwnerOrAdmin(Project project) {
+        if (!SecurityUtils.isAdmin() && !project.getOwner().getId().equals(SecurityUtils.currentUserId())) {
+            throw new AccessDeniedException("Not allowed to modify tasks in this project");
+        }
     }
 
     private Task findTaskInProjectOrThrow(UUID projectId, UUID taskId) {
