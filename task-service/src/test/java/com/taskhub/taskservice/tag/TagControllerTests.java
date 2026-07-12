@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.tag;
 
+import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.common.SecurityConfig;
 import com.taskhub.taskservice.tag.dto.TagResponse;
 import org.junit.jupiter.api.Test;
@@ -9,10 +10,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -63,7 +62,7 @@ class TagControllerTests {
     void should_returnNotFound_when_tagDoesNotExist() throws Exception {
         UUID id = UUID.randomUUID();
 
-        when(tagService.get(eq(id))).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag not found: " + id));
+        when(tagService.get(eq(id))).thenThrow(new ResourceNotFoundException("Tag not found: " + id));
 
         mockMvc.perform(get("/api/v1/tags/{id}", id))
                 .andExpect(status().isNotFound());

@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.task;
 
+import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.project.Project;
 import com.taskhub.taskservice.project.ProjectRepository;
 import com.taskhub.taskservice.tag.Tag;
@@ -8,10 +9,8 @@ import com.taskhub.taskservice.task.dto.TaskRequest;
 import com.taskhub.taskservice.task.dto.TaskResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -78,15 +77,15 @@ class TaskService {
 
     private Project requireProject(UUID projectId) {
         return projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found: " + projectId));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
     }
 
     private Task findTaskInProjectOrThrow(UUID projectId, UUID taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + taskId));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
 
         if (!task.getProject().getId().equals(projectId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + taskId);
+            throw new ResourceNotFoundException("Task not found: " + taskId);
         }
         return task;
     }

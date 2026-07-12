@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.task;
 
+import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.common.SecurityConfig;
 import com.taskhub.taskservice.task.dto.TaskResponse;
 import org.junit.jupiter.api.Test;
@@ -9,11 +10,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -62,7 +61,7 @@ class TaskControllerTests {
         UUID projectId = UUID.randomUUID();
 
         when(taskService.list(eq(projectId), any(Pageable.class)))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found: " + projectId));
+                .thenThrow(new ResourceNotFoundException("Project not found: " + projectId));
 
         mockMvc.perform(get("/api/v1/projects/{projectId}/tasks", projectId))
                 .andExpect(status().isNotFound());

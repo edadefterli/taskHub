@@ -21,7 +21,10 @@ public class SecurityConfig {
         // this, the real error status gets masked by a 403 from the forward itself.
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/api/v1/**", "/error").permitAll()
+                        .requestMatchers(
+                                "/actuator/health", "/api/v1/**", "/error",
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+                        .permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }

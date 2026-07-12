@@ -1,15 +1,15 @@
 package com.taskhub.taskservice.project;
 
+import com.taskhub.taskservice.common.InvalidReferenceException;
+import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.project.dto.ProjectRequest;
 import com.taskhub.taskservice.project.dto.ProjectResponse;
 import com.taskhub.taskservice.user.User;
 import com.taskhub.taskservice.user.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -73,11 +73,11 @@ class ProjectService {
 
     private Project findProjectOrThrow(UUID id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
     }
 
     private User findOwnerOrThrow(UUID ownerId) {
         return userRepository.findById(ownerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Owner not found: " + ownerId));
+                .orElseThrow(() -> new InvalidReferenceException("Owner not found: " + ownerId));
     }
 }

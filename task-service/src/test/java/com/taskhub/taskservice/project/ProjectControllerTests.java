@@ -1,5 +1,6 @@
 package com.taskhub.taskservice.project;
 
+import com.taskhub.taskservice.common.ResourceNotFoundException;
 import com.taskhub.taskservice.common.SecurityConfig;
 import com.taskhub.taskservice.project.dto.ProjectRequest;
 import com.taskhub.taskservice.project.dto.ProjectResponse;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -61,6 +63,17 @@ class ProjectControllerTests {
                                 {"name":"","description":null,"ownerId":"%s"}
                                 """.formatted(UUID.randomUUID())))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_returnNotFound_when_projectDoesNotExist() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        when(projectService.get(eq(id))).thenThrow(new ResourceNotFoundException("Project not found: " + id));
+
+        mockMvc.perform(get("/api/v1/projects/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test
