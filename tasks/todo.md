@@ -15,10 +15,10 @@ Mirrors `plan.md`. `[ask-first]` = confirm with developer before executing, even
 - [x] S2-T4 Swagger UI + global RFC 7807 error handling
 
 ## Session 3 — JWT authentication + RBAC + CORS
-- [ ] S3-T1 Register/login issuing JWT (BCrypt)
-- [ ] S3-T2 Security filter chain enforcing 401
-- [ ] S3-T3 Role-based authorization + ownership rules
-- [ ] S3-T4 CORS allow-list + JWT expiry enforcement
+- [x] S3-T1 Register/login issuing JWT (BCrypt)
+- [x] S3-T2 Security filter chain enforcing 401
+- [x] S3-T3 Role-based authorization + ownership rules
+- [x] S3-T4 CORS allow-list + JWT expiry enforcement
 
 ## Session 4 — gRPC notification-service
 - [ ] S4-T1 .proto contract + unary SendNotification
